@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerAI — Intelligent Job Recommendation System</title>
+    <meta name="description" content="AI-Powered Job Recommendation System using TF-IDF Vectorization, Cosine Similarity, and Skill Gap Analysis.">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/static/css/style.css?v=5">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="bg-mesh" aria-hidden="true"></div>
+    <div class="bg-grid" aria-hidden="true"></div>
+
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 7h-4V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v3H4a1 1 0 0 0-1 1v2a8 8 0 0 0 8 8 8 8 0 0 0 8-8V8a1 1 0 0 0-1-1z"/>
+                        <path d="M12 17v4M8 21h8"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3>CareerAI</h3>
+                    <p class="caption">Intelligent Skill Matcher</p>
+                </div>
+            </div>
+
+            <div class="sidebar-block">
+                <label class="sidebar-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                    Saved Jobs (<span id="saved-count">0</span>)
+                </label>
+                <ul id="saved-list" class="saved-list">
+                    <li class="saved-empty">No saved jobs yet</li>
+                </ul>
+                <button class="btn btn-ghost" id="clear-saved-btn" type="button">Clear Saved Jobs</button>
+            </div>
+
+            <div class="sidebar-block">
+                <label class="sidebar-label" for="preset-select">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    Quick Presets
+                </label>
+                <select id="preset-select" class="select-styled">
+                    <option value="">Select Preset Profile...</option>
+                    <option value="data-science">Data Science &amp; AI Engineer</option>
+                    <option value="frontend">Frontend Web Developer</option>
+                    <option value="devops">DevOps &amp; Cloud Engineer</option>
+                    <option value="security">Cybersecurity Specialist</option>
+                </select>
+            </div>
+
+            <div class="sidebar-block sidebar-footer">
+                <button class="btn btn-ghost" id="reset-skills-btn" type="button">Reset Skill Profile</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <header class="title-banner animate-in">
+                <div class="title-banner-glow" aria-hidden="true"></div>
+                <div class="title-badge">
+                    <span class="pulse-dot"></span>
+                    AI Skill Matching Engine v2.0
+                </div>
+                <h1 class="title-text">AI-Based Job Recommendation System</h1>
+                <p class="title-subtext">Discover personalized career opportunities using TF-IDF vector analysis, cosine similarity matching, and real-time missing skill gap detection.</p>
+            </header>
+
+            <section class="search-hub-card animate-in delay-1">
+                <div class="hub-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                        <path d="M11 8v6M8 11h6"/>
+                    </svg>
+                </div>
+                <div class="hub-content" style="flex:1;">
+                    <div class="hub-heading">Match Your Skill Profile</div>
+                    <div class="hub-sub">Upload your PDF resume, pick skills from our cloud, or enter custom technologies to get instant ranked matches.</div>
+                    <div id="server-status" class="alert alert-success hidden"></div>
+                </div>
+            </section>
+
+            <div class="columns-3">
+                <!-- Step 1: Input -->
+                <div class="col-card animate-in delay-2">
+                    <div class="card-header">
+                        <span class="step-badge">01</span>
+                        <h4>Profile &amp; Skill Input</h4>
+                    </div>
+
+                    <div class="input-mode-toggle radio-group">
+                        <label class="mode-option">
+                            <input type="radio" name="input-mode" value="pdf">
+                            <span class="mode-label">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                Upload Resume
+                            </span>
+                        </label>
+                        <label class="mode-option">
+                            <input type="radio" name="input-mode" value="manual" checked>
+                            <span class="mode-label">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                Enter Skills
+                            </span>
+                        </label>
+                    </div>
+
+                    <div id="pdf-section" class="hidden">
+                        <label class="file-drop" for="pdf-upload" id="pdf-dropzone">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <span>Drop PDF resume here or click to browse</span>
+                            <small>Automated skill extraction from .pdf</small>
+                        </label>
+                        <input type="file" id="pdf-upload" accept=".pdf" class="file-input-hidden">
+                        <div id="pdf-status" style="margin-top:0.5rem;"></div>
+                    </div>
+
+                    <div id="manual-section">
+                        <label class="field-label" for="custom-skills">Add custom skill tag (Press Enter)</label>
+                        <input type="text" id="custom-skills" class="input-styled" placeholder="e.g. PyTorch, Docker, FastAPI...">
+                        
+                        <label class="field-label" style="margin-top:0.85rem;">Quick Skill Picker (Click to add)</label>
+                        <div class="skill-cloud" id="quick-skills-cloud">
+                            <!-- Populated dynamically -->
+                        </div>
+                        
+                        <label class="field-label" for="skills-select" style="margin-top:0.85rem;">All Dataset Skills</label>
+                        <select id="skills-select" class="skills-select select-styled" multiple></select>
+                    </div>
+
+                    <div class="active-skills">
+                        <div class="active-skills-header">
+                            <span>Active Skill Profile</span>
+                            <span class="skill-count-badge"><span id="skill-count">0</span> skills</span>
+                        </div>
+                        <div class="skill-chips" id="active-skills-list">
+                            <span class="skill-chip-empty">No skills selected yet</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Filters -->
+                <div class="col-card animate-in delay-3">
+                    <div class="card-header">
+                        <span class="step-badge">02</span>
+                        <h4>Preferences &amp; Thresholds</h4>
+                    </div>
+
+                    <div>
+                        <label class="field-label" for="location-filter">Preferred Location</label>
+                        <select id="location-filter" class="select-styled"></select>
+                    </div>
+
+                    <div>
+                        <label class="field-label" for="category-filter">Job Category</label>
+                        <select id="category-filter" class="select-styled"></select>
+                    </div>
+
+                    <div>
+                        <label class="field-label" for="exp-filter">Experience Level</label>
+                        <select id="exp-filter" class="select-styled"></select>
+                    </div>
+
+                    <div class="card-header card-header-sub">
+                        <span class="step-badge step-badge-sm">03</span>
+                        <h4>Match Tuning</h4>
+                    </div>
+
+                    <div class="range-group">
+                        <div class="range-label">
+                            <span>Max Recommendations</span>
+                            <span class="range-value" id="top-n-value">5</span>
+                        </div>
+                        <input type="range" id="top-n" min="1" max="10" value="5">
+                    </div>
+
+                    <div class="range-group">
+                        <div class="range-label">
+                            <span>Min Match Cutoff (%)</span>
+                            <span class="range-value" id="min-score-value">0%</span>
+                        </div>
+                        <input type="range" id="min-score" min="0" max="50" step="5" value="0">
+                    </div>
+                </div>
+
+                <!-- Step 3: Execution -->
+                <div class="col-card col-card-action animate-in delay-4">
+                    <div class="card-header">
+                        <span class="step-badge">04</span>
+                        <h4>Generate AI Matches</h4>
+                    </div>
+
+                    <div class="value-props">
+                        <div class="value-prop-item"><span class="value-prop-check">&#10004;</span> PDF Skill Parsing</div>
+                        <div class="value-prop-item"><span class="value-prop-check">&#10004;</span> TF-IDF Feature Extraction</div>
+                        <div class="value-prop-item"><span class="value-prop-check">&#10004;</span> Cosine Similarity Vector Score</div>
+                        <div class="value-prop-item"><span class="value-prop-check">&#10004;</span> Missing Skill Gap Analysis</div>
+                        <div class="value-prop-item"><span class="value-prop-check">&#10004;</span> Interactive Charts &amp; Export</div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" id="demo-profile-btn" type="button">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            Load Demo Profile
+                        </button>
+                        <button class="btn btn-primary" id="generate-btn" type="button">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            <span class="btn-text">Generate Recommendations</span>
+                        </button>
+                        <button class="btn btn-secondary hidden" id="export-btn" type="button">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Export Matches (JSON)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <section id="results-section" class="results-section hidden">
+                <div class="section-header" style="display:flex; justify-content:space-between; align-items:flex-end;">
+                    <div>
+                        <h2 class="section-title">Recommendation Results &amp; Gap Analytics</h2>
+                        <p class="section-subtitle">Ranked job roles matched against your skill matrix</p>
+                    </div>
+                </div>
+
+                <div id="no-results" class="alert alert-warning hidden">
+                    No job roles matched your exact filter criteria. Relax your location/category filters or lower the minimum match threshold.
+                </div>
+
+                <div id="results-content" class="hidden">
+                    <div class="metrics">
+                        <div class="metric-card metric-card-primary">
+                            <div class="metric-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-4V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v3H4a1 1 0 0 0-1 1v2a8 8 0 0 0 8 8 8 8 0 0 0 8-8V8a1 1 0 0 0-1-1z"/></svg>
+                            </div>
+                            <div class="metric-label">Top Recommended Job</div>
+                            <div class="metric-value" id="metric-top-job">-</div>
+                        </div>
+                        <div class="metric-card metric-card-success">
+                            <div class="metric-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            </div>
+                            <div class="metric-label">Highest Match Score</div>
+                            <div class="metric-value" id="metric-top-score">-</div>
+                        </div>
+                        <div class="metric-card metric-card-info">
+                            <div class="metric-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                            </div>
+                            <div class="metric-label">Total Roles Evaluated</div>
+                            <div class="metric-value" id="metric-total">-</div>
+                        </div>
+                    </div>
+
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="jobs" type="button">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-4V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v3H4a1 1 0 0 0-1 1v2a8 8 0 0 0 8 8 8 8 0 0 0 8-8V8a1 1 0 0 0-1-1z"/></svg>
+                            Recommended Jobs
+                        </button>
+                        <button class="tab-btn" data-tab="analytics" type="button">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
+                            Skill Gap Analytics
+                        </button>
+                        <button class="tab-btn" data-tab="dataset" type="button">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                            Explore Full Dataset
+                        </button>
+                    </div>
+
+                    <div id="tab-jobs" class="tab-panel active">
+                        <div id="job-cards"></div>
+                    </div>
+
+                    <div id="tab-analytics" class="tab-panel">
+                        <div class="charts-grid">
+                            <div class="chart-container">
+                                <h4>Match Score Distribution</h4>
+                                <canvas id="match-chart"></canvas>
+                            </div>
+                            <div class="chart-container">
+                                <h4>Missing Skill Gap Frequency</h4>
+                                <p class="chart-caption">Top missing skills required across top recommended roles.</p>
+                                <canvas id="missing-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-dataset" class="tab-panel">
+                        <div class="table-toolbar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                            <input type="text" id="table-search" class="table-search input-styled" placeholder="Search dataset by title, category, skills, location...">
+                        </div>
+                        <div class="data-table-wrap">
+                            <table class="data-table" id="jobs-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Title</th>
+                                        <th>Category</th>
+                                        <th>Experience</th>
+                                        <th>Location</th>
+                                        <th>Required Skills</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Job Detail Modal Overlay -->
+    <div id="job-modal" class="modal-overlay hidden" aria-hidden="true">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="modal-title">Job Details</h3>
+                <button class="modal-close" id="modal-close-btn" type="button">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container"></div>
+
+    <script src="/static/js/app.js?v=5"></script>
+</body>
+</html>
